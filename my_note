@@ -1,0 +1,50 @@
+
+ -i https://mirrors.aliyun.com/pypi/simple/
+pip._internal
+
+python scripts/demo_inference.py --cfg configs/halpe_26/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint pretrained_models/halpe26_fast_res50_256x192.pthhalpe26_fast_res50_256x192.pth --vis --webcam 0
+
+docker run -it \
+  --gpus all \
+  -v /tmp/.X11-unix:/tmp/.X11-unix \
+  --device /dev/video0 \
+  --device /dev/snd \
+  -e DISPLAY=unix$DISPLAY \
+  -e NVIDIA_DRIVER_CAPABILITIES=all \
+  uiview
+
+  nvidia/cuda:10.1-cudnn7-devel-ubuntu18.04
+  nvidia/cuda:10.2-devel-ubuntu18.04
+
+rm -rf /var/lib/apt/lists/*
+apt-get clean
+
+apt-get update -y
+apt-get upgrade -y
+apt-get autoremove -y
+
+apt-get install -y gnupg2 git gcc g++ scons vim pkg-config cmake && \
+apt-get install -y libglfw3-dev freeglut3-dev libgles2-mesa-dev && \
+apt-get install -y libopencv-dev
+
+apt-get install libatlas-base-dev liblapack-dev libblas-dev libopenblas-dev
+
+-mavx -O3 -Ofast
+
+apt-get install -y wget && \
+apt-get install -y software-properties-common
+
+cmake .. -DDLIB_USE_CUDA=1 -DUSE_AVX_INSTRUCTIONS=1 #-DCUDA_HOST_COMPILER=/usr/bin/gcc-6
+cmake --build . --config Release --target install
+make install -j3
+
+
+
+
+g++ -o cublas_test.out cublas_test.cc -Llib -Llib -L/usr/local/lib -lstdc++ -lm -ldl -lGL -lGLU -lglut -lglfw -lGLESv2 -lnanovg -lcudart -lcuda -lcublas -lOpenCL -lcblas -llapack -lopencv_shape -lopencv_stitching -lopencv_superres -lopencv_videostab -lopencv_aruco -lopencv_bgsegm -lopencv_bioinspired -lopencv_ccalib -lopencv_datasets -lopencv_dpm -lopencv_face -lopencv_freetype -lopencv_fuzzy -lopencv_hdf -lopencv_line_descriptor -lopencv_optflow -lopencv_video -lopencv_plot -lopencv_reg -lopencv_saliency -lopencv_stereo -lopencv_structured_light -lopencv_phase_unwrapping -lopencv_rgbd -lopencv_viz -lopencv_surface_matching -lopencv_text -lopencv_ximgproc -lopencv_calib3d -lopencv_features2d -lopencv_flann -lopencv_xobjdetect -lopencv_objdetect -lopencv_ml -lopencv_xphoto -lopencv_highgui -lopencv_videoio -lopencv_imgcodecs -lopencv_photo -lopencv_imgproc -lopencv_core -ldlib -lpthread /usr/lib/x86_64-linux-gnu/libX11.so /usr/lib/x86_64-linux-gnu/libXext.so /usr/lib/x86_64-linux-gnu/libpng.so /usr/lib/x86_64-linux-gnu/libz.so /usr/lib/x86_64-linux-gnu/libjpeg.so /usr/lib/x86_64-linux-gnu/libcblas.so /usr/lib/x86_64-linux-gnu/liblapack.so /usr/lib/x86_64-linux-gnu/libcublas.so /usr/lib/x86_64-linux-gnu/libcublas_device.a /usr/lib/x86_64-linux-gnu/libcudnn.so /usr/local/cuda/lib64/libcurand.so /usr/local/cuda/lib64/libcusolver.so /usr/local/cuda/lib64/libcudart.so
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64
+export PATH=$PATH:/usr/local/cuda/bin
+export CUDA_HOME=/usr/local/cuda 
+
+
